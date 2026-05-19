@@ -2,7 +2,7 @@
 
 Discord-бот, использующий **Google Gemini API** для общения, обработки изображений, аудио, документов и озвучивания ответов в голосовых каналах.
 
-Вдохновлен: https://github.com/EnArvy/Discord-Gemini-Chatbot
+Основа (без TTS): https://github.com/EnArvy/Discord-Gemini-Chatbot
 
 ## Возможности
 
