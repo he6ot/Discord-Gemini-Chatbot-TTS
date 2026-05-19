@@ -21,7 +21,7 @@ Discord-бот, использующий **Google Gemini API** для общен
 ## Установка
 
 ```bash
-git clone https://github.com/your-username/Discord-Gemini-Chatbot.git
+git clone https://github.com/he6ot/Discord-Gemini-Chatbot-TTS.git
 cd Discord-Gemini-Chatbot
 pip install -r requirements.txt
 ```
