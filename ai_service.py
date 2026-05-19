@@ -21,7 +21,7 @@ class AIService:
         """Initialize the AI service with configuration."""
         genai.configure(api_key=GOOGLE_AI_KEY)  # type: ignore
         self.model = genai.GenerativeModel(  # type: ignore
-            model_name="gemini-3-flash-preview",
+            model_name="gemini-flash-latest",
             generation_config=TEXT_GENERATION_CONFIG,  # type: ignore
             safety_settings=SAFETY_SETTINGS
         )
