@@ -1,4 +1,4 @@
-# Discord Gemini Chatbot
+# Discord Gemini Chatbot TTS
 
 Discord-бот, использующий **Google Gemini API** для общения, обработки изображений, аудио, документов и озвучивания ответов в голосовых каналах.
 
