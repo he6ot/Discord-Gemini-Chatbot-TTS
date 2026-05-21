@@ -21,17 +21,23 @@ TRACKED_CHANNELS = [
 
 # AI Model Configuration
 TEXT_GENERATION_CONFIG = {
-    "temperature": 0.9,
-    "top_p": 1,
-    "top_k": 1,
+    # "thinking_config": {
+    #    "thinking_level": "high",
+    # },
     # "max_output_tokens": 1024,
+    # "temperature": 0.9,
+    # "top_p": 1,
+    # "top_k": 1,
 }
 
 IMAGE_GENERATION_CONFIG = {
-    "temperature": 0.4,
-    "top_p": 1,
-    "top_k": 32,
+    # "thinking_config": {
+    #    "thinking_level": "high",
+    # },
     # "max_output_tokens": 1024,
+    # "temperature": 0.9,
+    # "top_p": 1,
+    # "top_k": 1,
 }
 
 # Safety settings for content filtering
