@@ -1,8 +1,10 @@
 # Discord Gemini Chatbot TTS
 
-Discord-бот, использующий **Google Gemini API** (SDK `google-genai`) для общения, обработки изображений, аудио, документов и озвучивания ответов в голосовых каналах.
+Discord-бот, использующий **Google Gemini API** (SDK `google-genai`) для общения, обработки изображений, аудио, документов и озвучивания ответов в голосовых каналах. 
 
 Основа (без TTS): https://github.com/EnArvy/Discord-Gemini-Chatbot
+
+99% Vibecoded
 
 ## Возможности
 
