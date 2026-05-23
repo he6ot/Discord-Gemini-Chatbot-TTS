@@ -55,6 +55,10 @@ class GeminiBot:
         history_data = ChatDataManager.load_chat_history()
         self.ai_service.load_history(history_data)
         
+        # Load system prompts
+        prompts_data = ChatDataManager.load_system_prompts()
+        self.ai_service.load_system_prompts(prompts_data)
+        
         # Load tracked threads
         self.threads_manager.threads = ChatDataManager.load_tracked_threads()
     

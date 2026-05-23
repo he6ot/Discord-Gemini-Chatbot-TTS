@@ -4,7 +4,7 @@ Discord bot commands for managing conversation history and threads.
 from discord import Interaction, app_commands, TextChannel
 from discord.ext import commands
 from typing import Optional
-from settings import BOT_TEMPLATE
+from settings import BOT_TEMPLATE, SYSTEM_PROMPT
 from storage import ChatDataManager
 
 
@@ -19,15 +19,16 @@ def setup_commands(bot: commands.Bot, ai_service, tracked_threads_manager):
     """
     
     @bot.tree.command(name='forget', description='Forget message history')
-    @app_commands.describe(persona='Persona of bot')
-    async def forget(interaction: Interaction, persona: Optional[str] = None):
+    @app_commands.describe(persona='Persona of bot', system_prompt='System prompt for this channel')
+    async def forget(interaction: Interaction, persona: Optional[str] = None, system_prompt: Optional[str] = None):
         """
         Clear the conversation history for the current channel.
-        Optionally set a new persona for the bot.
+        Optionally set a new persona or system prompt for the bot.
         
         Args:
             interaction: The slash command interaction
             persona: Optional new persona for the bot
+            system_prompt: Optional system prompt for this channel
         """
         try:
             channel_id = interaction.channel_id
@@ -38,6 +39,10 @@ def setup_commands(bot: commands.Bot, ai_service, tracked_threads_manager):
             # Clear history
             ai_service.delete_channel_history(channel_id)
             ChatDataManager.delete_chat_history(channel_id)
+            
+            # Set system prompt if provided
+            if system_prompt is not None:
+                ai_service.set_system_prompt(channel_id, system_prompt, keep_history=False)
             
             # Reset with new persona if provided
             if persona:
@@ -51,12 +56,104 @@ def setup_commands(bot: commands.Bot, ai_service, tracked_threads_manager):
                     'parts': ["Ok!"]
                 })
                 ai_service.reset_channel_history(channel_id, temp_template)
-                ChatDataManager.save_chat_history(channel_id, ai_service.get_history(channel_id))
             
-            await interaction.response.send_message("Message history for channel erased.")
+            ChatDataManager.save_chat_history(channel_id, ai_service.get_history(channel_id))
+            ChatDataManager.save_system_prompts(ai_service.system_prompts)
+            
+            msg = "Message history for channel erased."
+            if system_prompt:
+                msg += f"\nSystem prompt set: `{system_prompt[:100]}{'...' if len(system_prompt) > 100 else ''}`"
+            if persona:
+                msg += f"\nPersona set: `{persona}`"
+            
+            await interaction.response.send_message(msg)
             
         except Exception as e:
             print(f"Error in forget command: {e}")
+            await interaction.response.send_message("An error occurred while processing your command.")
+    
+    @bot.tree.command(name='setprompt', description='Set a system prompt for this channel')
+    @app_commands.describe(prompt='The system prompt to use')
+    async def setprompt(interaction: Interaction, prompt: str):
+        """
+        Set a system prompt for the current channel.
+        This prompt will be prepended to all conversations in this channel.
+        
+        Args:
+            interaction: The slash command interaction
+            prompt: The system prompt text
+        """
+        try:
+            channel_id = interaction.channel_id
+            if channel_id is None:
+                await interaction.response.send_message("Error: Cannot determine channel.")
+                return
+            
+            ai_service.set_system_prompt(channel_id, prompt, keep_history=True)
+            ChatDataManager.save_system_prompts(ai_service.system_prompts)
+            ChatDataManager.save_chat_history(channel_id, ai_service.get_history(channel_id))
+            
+            display = prompt[:200] + ('...' if len(prompt) > 200 else '')
+            await interaction.response.send_message(f"System prompt set for this channel:\n```\n{display}\n```")
+            
+        except Exception as e:
+            print(f"Error in setprompt command: {e}")
+            await interaction.response.send_message("An error occurred while processing your command.")
+    
+    @bot.tree.command(name='getprompt', description='Show the current system prompt for this channel')
+    async def getprompt(interaction: Interaction):
+        """
+        Show the current system prompt for the channel.
+        
+        Args:
+            interaction: The slash command interaction
+        """
+        try:
+            channel_id = interaction.channel_id
+            if channel_id is None:
+                await interaction.response.send_message("Error: Cannot determine channel.")
+                return
+            
+            prompt = ai_service.get_system_prompt(channel_id)
+            if not prompt:
+                if SYSTEM_PROMPT:
+                    display = SYSTEM_PROMPT[:200] + ('...' if len(SYSTEM_PROMPT) > 200 else '')
+                    await interaction.response.send_message(f"No channel-specific prompt set. Using global default:\n```\n{display}\n```")
+                else:
+                    await interaction.response.send_message("No system prompt set for this channel.")
+            else:
+                display = prompt[:200] + ('...' if len(prompt) > 200 else '')
+                await interaction.response.send_message(f"Current system prompt for this channel:\n```\n{display}\n```")
+            
+        except Exception as e:
+            print(f"Error in getprompt command: {e}")
+            await interaction.response.send_message("An error occurred while processing your command.")
+    
+    @bot.tree.command(name='clearprompt', description='Remove the channel-specific system prompt')
+    async def clearprompt(interaction: Interaction):
+        """
+        Remove the channel-specific system prompt. Falls back to global default.
+        
+        Args:
+            interaction: The slash command interaction
+        """
+        try:
+            channel_id = interaction.channel_id
+            if channel_id is None:
+                await interaction.response.send_message("Error: Cannot determine channel.")
+                return
+            
+            ai_service.set_system_prompt(channel_id, '', keep_history=True)
+            ChatDataManager.save_system_prompts(ai_service.system_prompts)
+            ChatDataManager.save_chat_history(channel_id, ai_service.get_history(channel_id))
+            
+            if SYSTEM_PROMPT:
+                await interaction.response.send_message("Channel prompt removed. Using global default.")
+            else:
+                await interaction.response.send_message("Channel prompt removed. No system prompt active.")
+            
+        except Exception as e:
+            print(f"Error in clearprompt command: {e}")
             await interaction.response.send_message("An error occurred while processing your command.")
     
     @bot.tree.command(

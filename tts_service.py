@@ -7,7 +7,8 @@ import asyncio
 import tempfile
 import traceback
 from typing import Optional, Tuple
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 import discord
 from settings import (
     GOOGLE_AI_KEY,
@@ -28,8 +29,8 @@ class TTSService:
             self.client = None
             return
 
-        genai.configure(api_key=GOOGLE_AI_KEY)
-        self.model = genai.GenerativeModel(model_name=TTS_MODEL)
+        self.client = genai.Client(api_key=GOOGLE_AI_KEY).aio
+        self.model_name = TTS_MODEL
 
     async def synthesize_speech(self, text: str) -> Optional[Tuple[bytes, str]]:
         """
@@ -48,32 +49,42 @@ class TTSService:
             text = text[:TTS_MAX_LENGTH]
             prompt = f"Read this: {text}"
 
-            response = await self.model.generate_content_async(
-                prompt,
-                generation_config={
-                    "response_modalities": ["AUDIO"],
-                    "speech_config": {
+            response = await self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_modalities=["AUDIO"],
+                    speech_config={
                         "voice_config": {
                             "prebuilt_voice_config": {
                                 "voice_name": TTS_VOICE_NAME
                             }
                         }
                     }
-                }
+                )
             )
+
+            print(f"TTS Debug: Response: {response}")
+            print(f"TTS Debug: Candidates: {response.candidates}")
 
             audio_data = None
             mime_type = None
 
             if response.candidates and response.candidates[0].content.parts:
                 for part in response.candidates[0].content.parts:
+                    print(f"TTS Debug: Part attributes: {dir(part)}")
                     if hasattr(part, 'inline_data') and part.inline_data:
                         audio_data = part.inline_data.data
                         mime_type = getattr(part.inline_data, 'mime_type', 'audio/mpeg')
                         break
-                    elif hasattr(part, 'data') and part.data:
-                        audio_data = part.data
+                    elif hasattr(part, 'text') and part.text:
+                        print(f"TTS Debug: Got text response instead of audio: {part.text[:100]}")
+                        audio_data = part.text.encode('utf-8')
                         mime_type = 'audio/mpeg'
+                    elif hasattr(part, 'online_data') and part.online_data:
+                        audio_data = part.online_data.data
+                        mime_type = getattr(part.online_data, 'mime_type', 'audio/mpeg')
+                        break
 
             if audio_data:
                 print(f"TTS Success: Received {len(audio_data)} bytes (mime: {mime_type})")

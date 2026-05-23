@@ -177,6 +177,7 @@ async def handle_message(message: Message, ai_service, storage_manager, tts_serv
                 message.channel.id,
                 ai_service.get_history(message.channel.id)
             )
+            storage_manager.save_system_prompts(ai_service.system_prompts)
             
     except Exception as e:
         print(f"Error: {e}")

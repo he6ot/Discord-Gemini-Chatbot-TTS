@@ -21,9 +21,9 @@ TRACKED_CHANNELS = [
 
 # AI Model Configuration
 TEXT_GENERATION_CONFIG = {
-    # "thinking_config": {
-    #    "thinking_level": "high",
-    # },
+    "thinking_config": {
+        "thinking_level": "high",
+    },
     # "max_output_tokens": 1024,
     # "temperature": 0.9,
     # "top_p": 1,
@@ -31,9 +31,9 @@ TEXT_GENERATION_CONFIG = {
 }
 
 IMAGE_GENERATION_CONFIG = {
-    # "thinking_config": {
-    #    "thinking_level": "high",
-    # },
+    "thinking_config": {
+        "thinking_level": "high",
+    },
     # "max_output_tokens": 1024,
     # "temperature": 0.9,
     # "top_p": 1,
@@ -55,6 +55,9 @@ BOT_TEMPLATE = [
     # {'role':'user','parts': ["Please give short and concise answers!"]},
     # {'role':'model','parts': ["I will try my best!"]},
 ]
+
+# Default system prompt for all channels (can be overridden per-channel)
+SYSTEM_PROMPT = os.getenv('SYSTEM_PROMPT', '')
 
 # Message splitting configuration
 MAX_MESSAGE_LENGTH = 1700

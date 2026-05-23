@@ -29,6 +29,14 @@ class ChatDataManager:
         return []
     
     @staticmethod
+    def load_system_prompts() -> Dict[int, str]:
+        """Load system prompts from persistent storage."""
+        with shelve.open(ChatDataManager.DB_NAME) as db:
+            if 'system_prompts' in db:
+                return db['system_prompts']
+        return {}
+    
+    @staticmethod
     def save_chat_history(channel_id: int, history: List) -> None:
         """Save chat history for a specific channel."""
         with shelve.open(ChatDataManager.DB_NAME) as db:
@@ -39,6 +47,12 @@ class ChatDataManager:
         """Save list of tracked threads."""
         with shelve.open(ChatDataManager.DB_NAME) as db:
             db['tracked_threads'] = threads
+    
+    @staticmethod
+    def save_system_prompts(prompts: Dict[int, str]) -> None:
+        """Save system prompts to persistent storage."""
+        with shelve.open(ChatDataManager.DB_NAME) as db:
+            db['system_prompts'] = prompts
     
     @staticmethod
     def delete_chat_history(channel_id: int) -> None:
